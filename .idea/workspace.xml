@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3d57e16c-dfe1-4bd0-8bcb-6f207b628e90" name="Changes" comment="Simple ping detector">
+    <list default="true" id="3d57e16c-dfe1-4bd0-8bcb-6f207b628e90" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
@@ -58,11 +58,20 @@
       <option name="project" value="LOCAL" />
       <updated>1708278555981</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Added functionality to detect SSH attempts">
+      <option name="closed" value="true" />
+      <created>1708280305330</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1708280305330</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Simple ping detector" />
-    <option name="LAST_COMMIT_MESSAGE" value="Simple ping detector" />
+    <MESSAGE value="Added functionality to detect SSH attempts" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added functionality to detect SSH attempts" />
   </component>
 </project>
