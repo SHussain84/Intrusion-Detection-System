@@ -1,9 +1,10 @@
 from scapy.all import *
+import datetime
 
 conf.iface = "eth0"
 rules = []
 
-def read_detection_rules(filename):
+def readDetectionRules(filename):
     with open(filename, 'r') as f:
         for line in f:
             line = line.strip().lower()
@@ -19,9 +20,13 @@ def read_detection_rules(filename):
                 rules.append("tcp and port 21")
 
     return rules
-def packet_callback(packet):
+
+def packetCallback(packet):
     src_ip = packet[IP].src
     dst_ip = packet[IP].dst
+    currentDateTime = datetime.datetime.now()
+    formattedDateTime = currentDateTime.strftime("%d/%m/%Y %H:%M:%S")
+    filePath = 'logs.txt'
 
     if TCP in packet:
         src_port = packet[TCP].sport
@@ -31,12 +36,17 @@ def packet_callback(packet):
         dst_port = packet[UDP].dport
 
     if "icmp" in rules and ICMP in packet and packet[ICMP].type == 8:
-        print(f"Ping detected from {src_ip} to {dst_ip}")
+        print(f"Ping detected from {src_ip} to {dst_ip} at {formattedDateTime}")
+        with open(filePath, 'a') as file:
+            file.write(f"Ping detected from {src_ip} to {dst_ip} at {formattedDateTime}\n")
     elif "(tcp and port 22)" in rules and TCP in packet and packet[TCP].dport == 22:
-        print(f"SSH connection attempt detected from {src_ip} to {dst_ip}")
+        print(f"SSH connection attempt detected from {src_ip} to {dst_ip} at {formattedDateTime}")
+        with open(filePath, 'a') as file:
+            file.write(f"SSH connection attempt detected from {src_ip} to {dst_ip} at {formattedDateTime}\n")
+    elif "(dos)"
 
-rules = read_detection_rules('detection_rules.txt')
-filter_str = " or ".join(rules)
-print(filter_str)
+rules = readDetectionRules('detection_rules.txt')
+filterStr = " or ".join(rules)
+print(filterStr)
 
-sniff(prn=packet_callback, filter=filter_str, store=0)
+sniff(prn=packetCallback, filter=filterStr, store=1)

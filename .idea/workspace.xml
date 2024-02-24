@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3d57e16c-dfe1-4bd0-8bcb-6f207b628e90" name="Changes" comment="">
+    <list default="true" id="3d57e16c-dfe1-4bd0-8bcb-6f207b628e90" name="Changes" comment="Added file reading capability from detection_rules.txt">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
@@ -66,12 +66,32 @@
       <option name="project" value="LOCAL" />
       <updated>1708280305330</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Added file reading capability from detection_rules.txt">
+      <option name="closed" value="true" />
+      <created>1708298124283</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1708298124283</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Simple ping detector" />
     <MESSAGE value="Added functionality to detect SSH attempts" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added functionality to detect SSH attempts" />
+    <MESSAGE value="Added file reading capability from detection_rules.txt" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added file reading capability from detection_rules.txt" />
   </component>
 </project>
