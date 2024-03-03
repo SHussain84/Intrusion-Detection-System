@@ -4,7 +4,8 @@ from email.mime.text import MIMEText
 from scapy.all import *
 import datetime
 
-conf.iface = "eth0"
+print("Please enter the name of the network interface you want to monitor:")
+conf.iface = "enp0s3"
 
 def getCurrentDateTime():
     currentDateTime = datetime.datetime.now()
@@ -86,12 +87,83 @@ def detectXmasAttack(packet):
             print(f"[*] Xmas Attack detected from {srcIp} to {dstIp}:{dstPort}")
             logAttack("Xmas Attack", srcIp, dstIp, dstPort)
 
-def detectAttacks(packet):
-    detectPing(packet)
-    detectSshAttempt(packet)
-    detectPingOfDeath(packet)
-    detectXmasAttack(packet)
-    detectSynScan(packet)
+def parseLogFile():
+    logFilePath = '/var/log/auth.log'
+    parsedLogs = []
+
+    try:
+        with open(logFilePath, 'r') as file:
+            for line in file:
+                if "Failed password" in line or "Accepted password" in line:
+                    parsedLog = parseLogLine(line)
+                    parsedLogs.append(parsedLog)
+        return parsedLogs
+    except FileNotFoundError:
+        print(f"The log file {logFilePath} was not found.")
+    except PermissionError:
+        print(f"Permission denied when trying to read {logFilePath}")
+
+def parseLogLine(line):
+    parts = line.split()
+    date = ' '.join(parts[:2])
+    time = parts[2]
+    outcome = "Failed" if "Failed" in line else "Accepted"
+    forIndex = parts.index("for") + 1
+    invalidUserIndex = parts.index("invalid") if "invalid" in parts else forIndex
+    userIndex = invalidUserIndex if "invalid" in parts else forIndex
+    fromIndex = parts.index("from")
+    ipIndex = fromIndex + 1
+    portIndex = parts.index("port") + 1
+    protocolIndex = parts.index("port") + 2
+    user = ' '.join(parts[userIndex:fromIndex]).replace("invalid user", "").strip()
+    ipAddress = parts[ipIndex]
+    port = parts[portIndex]
+    protocol = parts[protocolIndex]
+    return {
+        "date": date,
+        "time": time,
+        "outcome": outcome,
+        "user": user,
+        "ipAddress": ipAddress,
+        "port": port,
+        "protocol": protocol
+    }
+
+def detectBruteForceAttempts():
+    parsedLogs = parseLogFile()
+    threshold = 3
+    failedAttempts = {}
+
+    for log in parsedLogs:
+        if log['outcome'] == "Failed":
+            ipAddress = log['ipAddress']
+            if ipAddress in failedAttempts:
+                failedAttempts[ipAddress] += 1
+            else:
+                failedAttempts[ipAddress] = 1
+        if log['outcome'] == "Accepted":
+            print(f"Accepted SSH connection from {ipAddress} on user {log['user']} on {log['date']} at {log['time']}.")
+            print("If this was not you, please change your password as soon as possible!")
+
+    for ip, count in failedAttempts.items():
+        if count >= threshold:
+            print(f"[*] Possible brute force attack detected from {ip} with {count} failed login attempts on {log['date']} at {log['time']}.")
+            print(f"The following attempts were made from {ip}:")
+            for log in parsedLogs:
+                if log['ipAddress'] == ip and log['outcome'] == "Failed":
+                    print(log)
+                    print(f"Failed attempt on {log['date']} at {log['time']} on the user {log['user']}")
+
+
+#def detectAttacks(packet):
+    # detectPing(packet)
+    # detectSshAttempt(packet)
+    # detectPingOfDeath(packet)
+    # detectXmasAttack(packet)
+    # detectSynScan(packet)
 
 print("------------- IDS RUNNING -------------")
-sniff(filter="tcp or icmp", prn=detectAttacks)
+
+detectBruteForceAttempts()
+
+# sniff(filter="tcp or icmp", prn=detectAttacks)
