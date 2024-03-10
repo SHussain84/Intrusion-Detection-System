@@ -3,6 +3,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from scapy.all import *
 import datetime
+import threading
 
 print("Please enter the name of the network interface you want to monitor:")
 conf.iface = "enp0s3"
@@ -46,7 +47,7 @@ def detectSshAttempt(packet):
     if packet.haslayer(TCP):
         srcPort = packet[TCP].sport
         dstPort = packet[TCP].dport
-        if dstPort == 22:  # SSH port
+        if dstPort == 22 and packet[TCP].flags == 'S':  # SSH port
             srcIp = packet[IP].src
             dstIp = packet[IP].dst
             print(f"[*] SSH connection attempt detected from {srcIp}:{srcPort} to {dstIp}:{dstPort} at {getCurrentDateTime()}")
@@ -86,6 +87,24 @@ def detectXmasAttack(packet):
             dstPort = packet[TCP].dport
             print(f"[*] Xmas Attack detected from {srcIp} to {dstIp}:{dstPort}")
             logAttack("Xmas Attack", srcIp, dstIp, dstPort)
+
+def checkLogFile():
+    logFilePath = '/var/log/auth.log'
+
+    try:
+        with open(logFilePath, 'r') as file:
+            for line in file:
+                if "Failed password" in line or "Accepted password" in line:
+                    flag = True
+    except FileNotFoundError:
+        print(f"The log file {logFilePath} was not found.")
+    except PermissionError:
+        print(f"Permission denied when trying to read {logFilePath}")
+
+    if flag == True:
+        return True
+    else:
+        return False
 
 def parseLogFile():
     logFilePath = '/var/log/auth.log'
@@ -147,13 +166,43 @@ def detectBruteForceAttempts():
 
     for ip, count in failedAttempts.items():
         if count >= threshold:
-            print(f"[*] Possible brute force attack detected from {ip} with {count} failed login attempts on {log['date']} at {log['time']}.")
+            print(f"[*] Possible brute force attack detected from {ip} with {count} failed login attempts on {log['date']} at {log['time']}!")
             print(f"The following attempts were made from {ip}:")
             for log in parsedLogs:
                 if log['ipAddress'] == ip and log['outcome'] == "Failed":
-                    print(log)
-                    print(f"Failed attempt on {log['date']} at {log['time']} on the user {log['user']}")
+                    print(f"Failed login attempt on {log['date']} at {log['time']} for the user {log['user']}")
 
+
+def monitorLogFile(detectionThreshold=5, checkInterval=1):
+    logFilePath = '/var/log/auth.log'
+    print("Starting real-time monitoring for brute force attacks...")
+    lastPosition = os.path.getsize(logFilePath)  # Start at the end of the file
+    failedAttempts = {}
+
+    while True:
+        with open(logFilePath, 'r') as file:
+            file.seek(lastPosition)
+            newLines = file.readlines()
+            lastPosition = file.tell()  # Update last position
+
+        for line in newLines:
+            if "Failed password" in line:
+                logEntry = parseLogLine(line)
+                ipAddress = logEntry['ipAddress']
+                failedAttempts[ipAddress] = failedAttempts.get(ipAddress, 0) + 1
+
+                if failedAttempts[ipAddress] >= detectionThreshold:
+                    print(f"Possible brute force attack detected from {ipAddress}: {failedAttempts[ipAddress]} failed attempts")
+
+        time.sleep(checkInterval)  # Wait a bit before checking the file again
+
+def startPingDetection():
+    print("Starting ICMP packet detection...")
+    sniff(filter="icmp", prn=detectPing)
+
+def startSshDetection():
+    print("Starting SSH detection...")
+    sniff(filter="tcp port 22", prn=detectSshAttempt)
 
 #def detectAttacks(packet):
     # detectPing(packet)
@@ -162,8 +211,36 @@ def detectBruteForceAttempts():
     # detectXmasAttack(packet)
     # detectSynScan(packet)
 
-print("------------- IDS RUNNING -------------")
+def main():
+    print("------------- IDS RUNNING -------------")
 
-detectBruteForceAttempts()
+    logMonitorThread = threading.Thread(target=monitorLogFile, args=(2,2), daemon=True)
+    detectPingThread = threading.Thread(target=startPingDetection, daemon=True)
+    detectSshThread = threading.Thread(target=startSshDetection, daemon=True)
 
-# sniff(filter="tcp or icmp", prn=detectAttacks)
+    if checkLogFile() == True:
+        print("Failed or accepted SSH login attempts found!")
+        userResponse = None
+
+        while userResponse not in ('Y', 'N'):
+            userResponse = input("Would you like to view them? (Y/N): ").upper()
+            if userResponse not in ('Y', 'N'):
+                print("Invalid response. Please enter 'Y' for Yes or 'N' for No.")
+
+        if userResponse == "Y":
+            detectBruteForceAttempts()
+    else:
+        print("No failed or accepted SSH login attempts found.")
+
+    logMonitorThread.start()
+    detectPingThread.start()
+    detectSshThread.start()
+
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("Stopping threads and exiting program...")
+
+if __name__ == "__main__":
+    main()
