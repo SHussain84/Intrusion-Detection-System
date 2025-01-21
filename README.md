@@ -4,7 +4,7 @@ This is an Intrusion Detection system created in the Python programming language
 
 Below is a summary of each file:
 
-* [main.py](https://github.com/SHussain84/Intrusion-Detection-System/blob/main/main.py) is responsible for linking all the other classes together. As mentioned earlier, the IDS is modular which means that the modules need to be brought together to create one unified system. This is done by using the __threading__ module in Python to run all modules simultaneously. Modularity of the system allows for easier maintenance and scalability, as each module can be updated or modified independently without affecting the core functionality of the overall system.
+* [main.py](https://github.com/SHussain84/Intrusion-Detection-System/blob/main/main.py) is responsible for linking all the other modules together. This is done by using the __threading__ module in Python to run all modules simultaneously. Modularity of the system allows for easier maintenance and scalability, as each module can be updated or modified independently without affecting the core functionality of the overall system.
 
 * [BruteForceDetection.py](https://github.com/SHussain84/Intrusion-Detection-System/blob/main/BruteForceDetection.py) continuously monitors __SSH__ login attempts and flags patterns that suggest brute forcing, such as login attempts in rapid succession or repeatedly entering the incorrect password. This is done by parsing the Linux log file in real time for failed login attempts.
 
